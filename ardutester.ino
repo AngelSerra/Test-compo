@@ -78,10 +78,10 @@ char foo;
 #if not defined(__AVR_ATmega328P__)
     #error Sorry, this program works only on Arduino Uno
 #endif
-#if defined(LCD_PRINT) && defined(DEBUG_PRINT) && defined(LCD_DOGM128) && defined(LCD_PCD8544)
-  #error Invalid Parameters: Use LCD_PRINT or DEBUG_PRINT or LCD_DOGM128 or LCD_PCD8544
+#if defined(LCD_PRINT) && defined(DEBUG_PRINT) && defined(LCD_DOGM128) && defined(LCD_PCD8544) && defined(LCD_SSD1306)
+  #error Invalid Parameters: Use LCD_PRINT or DEBUG_PRINT or LCD_DOGM128 or LCD_PCD8544 or LCD_SSD1306
 #endif
-#if !defined(LCD_PRINT) && !defined(DEBUG_PRINT) && !defined(LCD_DOGM128) && !defined(LCD_PCD8544)
+#if !defined(LCD_PRINT) && !defined(DEBUG_PRINT) && !defined(LCD_DOGM128) && !defined(LCD_PCD8544) && !defined(LCD_SSD1306)
   #error Invalid Parameters: Choose one of them: LCD_PRINT or DEBUG_PRINT or LCD_DOGM128 or LCD_PCD8544
 #endif
 
@@ -101,13 +101,16 @@ char foo;
   #include "graphicdisplay.h"
   GraphicDisplay lcd(2,3,5,4,6);
 #endif
-
 //LCD I2C Output
 #ifdef LCD_PRINT
   #include "display.h"
   LcdDisplay lcd(I2C_ADDR);
 #endif
-
+#ifdef LCD_SSD1306
+  #include "oleddisplay.h"
+  OledDisplay lcd;
+  #define LCD_DOGM128
+#endif
 #ifdef DEBUG_PRINT
   #include "serial.h"
   SerialDisplay lcd;
@@ -544,7 +547,7 @@ void setup()
     #endif
     power_timer2_disable();
   #endif
-  #ifndef LCD_PRINT
+  #if !defined(LCD_PRINT) && !defined(LCD_SSD1306)
     // twi i2c is used by lcd interface
     power_twi_disable();
   #endif
@@ -589,7 +592,9 @@ void setup()
       lcd.lcd_line(1);
     #endif
     lcd.lcd_fixed_string(Version_str);
+#ifdef LCD_DOGM128 || LCD_PCD8544
     lcd.update();
+#endif
   //Setup µC
   ADCSRA = (1 << ADEN) | ADC_CLOCK_DIV;          //Enable ADC and set clock divider
   MCUSR &= ~(1 << WDRF);                         //Reset watchdog flag
@@ -783,7 +788,9 @@ void loop()
           RunsMissed = 0;                        //Reset counter
           RunsPassed++;                          //Increase counter
         }
+#ifdef LCD_DOGM128 || LCD_PCD8544
         lcd.update();
+#endif
      }
   }
   #ifdef DEBUG_
@@ -3624,6 +3631,7 @@ void ShowBJT(void)
     String = (unsigned char *)PNP_str;
     lcd.component(COMPONENT_PNP);
   }
+  lcd.lcd_line(0);
   lcd.lcd_fixed_string(String);                      //Display: NPN / PNP
   //Protections diodes
   if (Check.Diodes > 2)                          //Transistor is a set of two diodes :-)
@@ -3642,7 +3650,7 @@ void ShowBJT(void)
     lcd.lcd_fixed_string(String);                    //Display: -|>|- / -|<|-
   }
   //Display pins
-  lcd.lcd_space();
+  lcd.lcd_line(1);
   lcd.lcd_fixed_string(EBC_str);                     //Display: EBC=
   lcd.lcd_testpin(BJT.E);                            //Display emitter pin
   lcd.lcd_testpin(BJT.B);                            //Display base pin
@@ -3681,7 +3689,7 @@ void ShowBJT(void)
       #ifdef LCD_PRINT
       lcd.lcd_clear_line(1);                         //Update line #2
       #else
-      lcd.lcd_clear_line(1);
+      lcd.lcd_line(3);
       #endif
       lcd.lcd_fixed_string(V_BE_str);                //Display: V_BE=
       /*
@@ -4914,6 +4922,7 @@ void LcdMenu(void)
   Menu[6] = (void *)Default_str;
   //Run menu
   lcd.lcd_clear();
+  lcd.lcd_line(0);
   lcd.lcd_fixed_string(Select_str);
   Selected = MenuTool(6, 1, Menu, NULL);
   //Run selected item

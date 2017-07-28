@@ -8,7 +8,9 @@
 // Choose which setup, only one is allowed
 //#define LCD_PRINT                              //Print on LCD with I2C interface
 //#define LCD_DOGM128                            //use LCD DOGM128
-#define LCD_PCD8544                              //Use LCD PCD8544, Nokia 5110/3110
+//#define LCD_PCD8544                              //Use LCD PCD8544, Nokia 5110/3110
+#define LCD_SSD1306
+#define LCD_SSD1306_I2C_ADDRESS 0x3C
 //#define DEBUG_PRINT                            //Print on Serial Port
 
 #define DET_COMP_ANALYSIS                        //Detailed Component Analysis (Soon)
