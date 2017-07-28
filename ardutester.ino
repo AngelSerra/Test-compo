@@ -4963,7 +4963,11 @@ void LcdMenu(void)
      break;
   }
   //Display end of item
+#ifdef LCD_PRINT
   lcd.lcd_clear();
+#else
+  lcd.setCursor(10,7);
+#endif
   if (Flag == 1)
     lcd.lcd_fixed_string(Done_str);                  //Display: done!
   else
